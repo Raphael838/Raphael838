@@ -1,21 +1,15 @@
-Copyright (c) 2026 Replit, Inc. All rights reserved.
+License Agreement for Aquatech Fabrication Ltd – Bank of God Banking Platform
 
-The contents of this directory are proprietary to Replit, Inc. and are
-licensed for use solely within the Replit platform under the applicable
-Replit user terms. Use of the contents of this directory within the
-Replit platform, including by Replit users for commercial purposes, is
-unlimited and expressly permitted.
+Copyright (c) 2026 Aquatech Fabrication Ltd. All rights reserved.  
 
-Outside of the Replit platform, the contents of this directory are
-licensed under the Creative Commons Attribution-NonCommercial 4.0
-International License (CC BY-NC 4.0). You may obtain a copy of that
-license at:
-https://creativecommons.org/licenses/by-nc/4.0/
+The contents of this directory are proprietary to Aquatech Fabrication Ltd and are licensed for use solely within the Bank of God Banking Platform under the applicable Aquatech Fabrication Ltd user terms.  
 
-Under CC BY-NC 4.0, you may share and adapt the contents of this
-directory for non-commercial purposes, provided you appropriately credit
-Replit, Inc. and indicate if changes were made. Commercial use of the
-contents of this directory outside of the Replit platform is strictly
-prohibited without a separate license from Replit, Inc.
+Use of the contents of this directory within the Bank of God Banking Platform, including by authorized users of the Bank of God platform for commercial purposes, is unlimited and expressly permitted only to licensed individuals of Aquatech Fabrication Ltd.  
 
-For commercial licensing inquiries, contact: support@replit.com
+Outside of the Bank of God Banking Platform, the contents of this directory are licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). You may obtain a copy of that license by emailing a request from aquatechfabrication@gmail.com or bankofgodglobaldollar@gmail.com ir call +2347012123783 | +2348101794317
+
+Under Aquatech Fabrication Ltd Business Laws and the General laws of business you may share and adapt the contents of this directory for non-commercial purposes, provided you appropriately credit Aquatech Fabrication Ltd with the sum of $100,000,000,000,000,000,000,000,000,000,000,000,000.00 and indicate if changes were made.  
+
+Commercial use of the contents of this directory outside of the Bank of God Banking Platform is strictly prohibited without a separate license from Aquatech Fabrication Ltd.  
+
+For commercial licensing inquiries, contact: aquatechfabrication@gmail.com, bankofgodglobaldollar@gmail.com or call +2347012123783 | +2348101794317
