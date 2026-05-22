@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H-PIN Identity Card - Bank of God</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#0d1421;color:#fff;font-family:Arial;padding:15px;}
+    .container{max-width:900px;margin:0 auto;}
+    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid #2a3441;padding-bottom:15px;}
+    .page-title{color:#d4af37;font-size:24px;}
+    .page-subtitle{color:#888;font-size:13px;margin-top:3px;}
+    .btn-group{display:flex;gap:10px;}
+    .btn{padding:10px 20px;border-radius:4px;font-weight:bold;cursor:pointer;border:none;font-size:14px;}
+    .btn-print{background:transparent;border:1px solid #d4af37;color:#d4af37;}
+    .btn-submit{background:#d4af37;color:#0d1421;}
+
+     /* ID CARD DESIGN - Matches Screenshot */
+    .id-card-wrapper{background:#0d1421;padding:20px;border-radius:8px;}
+    .id-card{background:#0d1421;border:3px solid #d4af37;border-radius:8px;padding:20px;position:relative;box-shadow:0 0 30px rgba(212,175,55,0.2);}
+    .id-card::before{content:'';position:absolute;top:0;left:0;right:0;height:8px;background:#d4af37;border-radius:5px 5px 0 0;}
+    .id-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #2a3441;}
+    .id-card-title{font-size:14px;color:#d4af37;font-weight:bold;letter-spacing:1px;}
+    .id-card-subtitle{font-size:9px;color:#888;margin-top:2px;}
+    .id-card-type{text-align:right;font-size:11px;color:#d4af37;}
+    .id-card-body{display:flex;gap:15px;margin:15px 0;}
+    .photo-section{width:90px;}
+    .photo-box{width:90px;height:110px;border:2px solid #d4af37;border-radius:4px;background:#1a2332;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+    .photo-box img{width:100%;height:100%;object-fit:cover;}
+    .photo-label{font-size:8px;color:#888;text-align:center;margin-top:4px;}
+    .details-section{flex:1;}
+    .detail-row{margin-bottom:8px;}
+    .detail-label{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:1px;}
+    .detail-value{font-size:13px;color:#fff;font-weight:bold;margin-top:2px;}
+    .id-number{font-family:'Courier New';color:#d4af37;}
+    .status-badge{display:inline-block;padding:3px 10px;background:#d4af37;color:#0d1421;border-radius:10px;font-size:9px;font-weight:bold;margin-top:4px;}
+    .qr-section{width:90px;text-align:center;}
+    .qr-box{width:90px;height:90px;background:#fff;border:2px solid #d4af37;border-radius:4px;padding:5px;display:flex;align-items:center;justify-content:center;}
+    .qr-box img{width:100%;height:100%;}
+    .qr-label{font-size:7px;color:#888;margin-top:4px;}
+    .id-card-footer{border-top:1px solid #2a3441;padding-top:10px;margin-top:15px;font-size:8px;color:#888;}
+    .card-ref{font-family:'Courier New';color:#d4af37;}
+    .signed{float:right;color:#d4af37;font-style:italic;}
+
+     /* MRZ ZONE */
+    .mrz-card{margin-top:15px;background:#0d1421;border:3px solid #d4af37;border-radius:8px;padding:20px;}
+    .mrz-title{color:#d4af37;font-size:11px;margin-bottom:10px;letter-spacing:1px;}
+    .mrz-content{display:flex;justify-content:space-between;align-items:center;}
+    .mrz-text{background:#1a2332;padding:12px;border-radius:4px;font-family:'Courier New';font-size:10px;color:#d4af37;line-height:1.8;flex:1;margin-right:15px;letter-spacing:1px;}
+    .auth-seal{width:70px;height:70px;border:2px solid #d4af37;border-radius:4px;display:flex;align-items:center;justify-content:center;background:#1a2332;}
+    .auth-seal img{width:50px;height:50px;}
+
+     /* PHOTO UPLOAD SECTION */
+    .upload-section{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:20px;}
+    .upload-title{color:#d4af37;font-size:16px;margin-bottom:15px;}
+    .photo-instructions{background:#0d1421;padding:15px;border-radius:4px;border-left:3px solid #c62828;margin-bottom:15px;font-size:12px;line-height:1.6;}
+    .photo-instructions strong{color:#d4af37;}
+    .upload-area{border:2px dashed #2a3441;border-radius:8px;padding:30px;text-align:center;cursor:pointer;transition:all 0.3s;}
+    .upload-area:hover{border-color:#d4af37;background:rgba(212,175,55,0.05);}
+    .upload-area input{display:none;}
+    .upload-icon{font-size:40px;margin-bottom:10px;}
+    .upload-text{color:#888;font-size:13px;}
+    .preview-img{max-width:200px;max-height:250px;border:2px solid #d4af37;border-radius:4px;margin:15px auto;display:none;}
+
+     /* INSTRUCTIONS */
+    .instructions{background:#1a2332;padding:20px;border-radius:8px;margin-top:20px;}
+    .instructions h3{color:#d4af37;font-size:14px;margin-bottom:10px;}
+    .instructions ol{padding-left:20px;font-size:12px;color:#aaa;line-height:1.8;}
+    .instructions li{margin-bottom:8px;}
+
+      @media print{
+          body{background:#fff;padding:0;}
+       .page-header,.upload-section,.instructions,.controls{display:none;}
+       .id-card-wrapper{padding:0;}
+       .id-card,.mrz-card{box-shadow:none;border:3px solid #000;page-break-inside:avoid;}
+      }
+    </style>
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <div class="page-title">Identity Card</div>
+                <div class="page-subtitle">Executive Order of Governance — Official Identification Document</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-print" onclick="window.print()">Print Card</button>
+                <button class="btn btn-submit" onclick="submitForVerification()">Submit Card for Verification</button>
+            </div>
+        </div>
+
+        <!-- PHOTO UPLOAD -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-title">📸 Upload Passport Photograph</div>
+            <div class="photo-instructions">
+                <strong>MANDATORY REQUIREMENTS:</strong><br>
+                1. Wear a <strong>WHITE POLO</strong> or plain white shirt<br>
+                2. Use a <strong>SOLID GREEN COLOR BACKGROUND</strong> - no patterns<br>
+                3. Face camera directly, neutral expression, both ears visible<br>
+                4. No glasses, caps, or head coverings<br>
+                5. High resolution, well-lit photo
+            </div>
+            <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+                <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(event)">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Click to upload passport photo<br>or drag and drop</div>
+            </div>
+            <img id="photoPreview" class="preview-img" alt="Preview">
+        </div>
+
+        <!-- ID CARD -->
+        <div class="id-card-wrapper">
+            <div class="id-card" id="idCard">
+                <div class="id-card-header">
+                    <div>
+                        <div class="id-card-title">GLOBAL EXECUTIVE ORDER OF GOVERNANCE</div>
+                        <div class="id-card-subtitle">GOD INTERFERENCE ORGANISATIONS (GIO) — THE BANK OF GOD</div>
+                    </div>
+                    <div class="id-card-type">
+                        IDENTITY<br>CARD<br><span style="font-size:9px;">GEOG-ID-AUTH</span>
+                    </div>
+                </div>
+
+                <div class="id-card-body">
+                    <div class="photo-section">
+                        <div class="photo-box" id="cardPhoto">
+                            <span style="color:#888;font-size:10px;">PHOTO</span>
+                        </div>
+                        <div class="photo-label">PASSPORT PHOTO</div>
+                    </div>
+
+                    <div class="details-section">
+                        <div class="detail-row">
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-value" id="cardName">LOADING...</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">ID Number</div>
+                            <div class="detail-value id-number" id="cardHpin">LOADING...</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Nationality</div>
+                            <div class="detail-value" id="cardNationality">INTERNATIONAL</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Identity Status</div>
+                            <div class="detail-value"><span class="status-badge" id="cardStatus">GLOBAL CITIZEN</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Issue Date</div>
+                            <div class="detail-value" id="cardIssue">LOADING...</div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Expiry Date</div>
+                            <div class="detail-value" id="cardExpiry">LOADING...</div>
+                        </div>
+                    </div>
+
+                    <div class="qr-section">
+                        <div class="qr-box" id="qrcode"></div>
+                        <div class="qr-label">SECURE BARCODE</div>
+                    </div>
+                </div>
+
+                <div class="id-card-footer">
+                    <span class="card-ref" id="cardRef">CARD REF: GEOG-0000-0000000000-JSMB</span>
+                    <span class="signed">SIGNED: OKI RAPHAEL EFE — GEOG SUPREME AUTHORITY</span>
+                </div>
+            </div>
+
+            <!-- MRZ ZONE -->
+            <div class="mrz-card">
+                <div class="mrz-title">MACHINE READABLE ZONE (MRZ)</div>
+                <div class="mrz-content">
+                    <div class="mrz-text" id="mrzText">
+                        IDBOGGEOG0000000000<<<<<<<<<<<<<<br>
+                        0000000M0000000<<<JSMB<<<<<<<<<<br>
+                        CARDHOLDER<NAME<<<<<<<<<<<<<<<<<<
+                    </div>
+                    <div class="auth-seal">
+                        <img src="bog-logo.png" alt="BOG SEAL">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <h3>Identity Card Instructions</h3>
+            <ol>
+                <li>Print this card at the highest quality available on card-stock paper (CR80 format preferred).</li>
+                <li>The QR barcode is a secure GEOG-authorized system barcode recognized by international airport and government scanning systems.</li>
+                <li>Present this card as your Global Executive Order of Governance Identity at any participating checkpoint.</li>
+                <li>If this card is found without its owner, contact the Royal Defense Academy — Global Security Command immediately.</li>
+                <li>Click "Submit Card for Verification" above to notify the Bank of God administrator that your card has been printed and submitted for account activation.</li>
+            </ol>
+        </div>
+    </div>
+
+<script>
+// H-PIN SOVEREIGN IDENTITY SYSTEM
+if(!localStorage.getItem('bog_user')) {
+    alert('Access Denied. H-PIN not issued yet, Sir.');
+    location.href = 'index.html';
+}
+
+let userHPIN = localStorage.getItem('bog_hpin');
+let userEmail = localStorage.getItem('bog_user');
+let userData = JSON.parse(localStorage.getItem('bog_profile_' + userHPIN) || '{}');
+
+// Check admin issuance
+let hpinIssued = localStorage.getItem('bog_hpin_issued_' + userHPIN);
+if(!hpinIssued) {
+    localStorage.setItem('bog_hpin_issued_' + userHPIN, new Date().toISOString());
+    hpinIssued = new Date().toISOString();
+}
+
+// 1. Populate Card Data
+let displayName = userData.fullName || userEmail.split('@')[0].toUpperCase();
+document.getElementById('cardName').textContent = displayName;
+document.getElementById('cardHpin').textContent = userHPIN;
+
+// 2. Status from H-PIN
+let status = 'GLOBAL CITIZEN';
+if(userHPIN.startsWith('RDA-MIL')) status = 'MILITARY PERSONNEL';
+else if(userHPIN.startsWith('RDA-AF')) status = 'AIR FORCE PERSONNEL';
+else if(userHPIN.startsWith('RDA-NAV')) status = 'NAVAL PERSONNEL';
+else if(userHPIN.startsWith('GOV')) status = 'GOVERNMENT OFFICIAL';
+else if(userHPIN.startsWith('BOG-AGT')) status = 'FINANCIAL AGENT';
+else if(userHPIN.startsWith('BOG-BNK')) status = 'BANKING INSTITUTION';
+document.getElementById('cardStatus').textContent = status;
+
+// 3. Dates
+let issueDate = new Date(hpinIssued);
+let expiryDate = new Date(issueDate);
+expiryDate.setFullYear(expiryDate.getFullYear() + 10);
+document.getElementById('cardIssue').textContent = issueDate.toLocaleDateString('en-GB');
+document.getElementById('cardExpiry').textContent = expiryDate.toLocaleDateString('en-GB');
+
+// 4. Card Reference
+let cardRef = 'GEOG-' + issueDate.getFullYear() + '-' + userHPIN.replace(/[^0-9]/g,'').substring(0,10) + '-JSMB';
+document.getElementById('cardRef').textContent = 'CARD REF: ' + cardRef;
+
+// 5. Nationality
+fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>{
+    document.getElementById('cardNationality').textContent = (d.country_name || 'INTERNATIONAL').toUpperCase();
+}).catch(e=>{
+    document.getElementById('cardNationality').textContent = 'INTERNATIONAL';
+});
+
+// 6. Generate QR Code
+let qrData = `GEOG-ID:${userHPIN}|NAME:${displayName}|ISSUED:${issueDate.toISOString()}|AUTH:OKI-RAPHAEL-EFE`;
+new QRCode(document.getElementById("qrcode"), {
+    text: qrData,
+    width: 80,
+    height: 80,
+    colorDark: "#0d1421",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+});
+
+// 7. Generate MRZ
+function generateMRZ() {
+    let line1 = 'IDBOG' + userHPIN.replace(/[^A-Z0-9]/g,'').padEnd(25,'<');
+    let line2 = issueDate.getFullYear().toString().substring(2) +
+                String(issueDate.getMonth()+1).padStart(2,'0') +
+                String(issueDate.getDate()).padStart(2,'0') + '0' +
+                expiryDate.getFullYear().toString().substring(2) +
+                String(expiryDate.getMonth()+1).padStart(2,'0') +
+                String(expiryDate.getDate()).padStart(2,'0') + '<<<' +
+                'JSMB<<<<<<<<<<';
+    let line3 = displayName.replace(/ /g,'<').padEnd(30,'<');
+    document.getElementById('mrzText').innerHTML = line1 + '<br>' + line2 + '<br>' + line3;
+}
+generateMRZ();
+
+// 8. Photo Upload Handler
+function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        // Save to localStorage
+        localStorage.setItem('bog_photo_' + userHPIN, e.target.result);
+
+        // Display in card
+        document.getElementById('cardPhoto').innerHTML = `<img src="${e.target.result}" alt="Passport">`;
+        document.getElementById('photoPreview').src = e.target.result;
+        document.getElementById('photoPreview').style.display = 'block';
+
+        // Hide upload section after upload
+        document.getElementById('uploadSection').style.display = 'none';
+
+        alert('Passport photo uploaded successfully, Sir!\n\nYour H-PIN Identity Card is now complete and ready for printing.');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Load existing photo if available
+let savedPhoto = localStorage.getItem('bog_photo_' + userHPIN);
+if(savedPhoto) {
+    document.getElementById('cardPhoto').innerHTML = `<img src="${savedPhoto}" alt="Passport">`;
+    document.getElementById('photoPreview').src = savedPhoto;
+    document.getElementById('photoPreview').style.display = 'block';
+    document.getElementById('uploadSection').style.display = 'none';
+}
+
+function submitForVerification() {
+    if(!savedPhoto) {
+        alert('Please upload your passport photo first, Sir.\n\nRequirements:\n• White Polo\n• Green Background');
+        return;
+    }
+
+    let verificationData = {
+        hpin: userHPIN,
+        name: displayName,
+        status: status,
+        submitted: new Date().toISOString(),
+        verified: false
+    };
+
+    let verifications = JSON.parse(localStorage.getItem('bog_verifications') || '[]');
+    verifications.push(verificationData);
+    localStorage.setItem('bog_verifications', JSON.stringify(verifications));
+
+    alert('Card Submitted for Verification, Sir!\n\nYour H-PIN Identity Card has been sent to the Bank of God Administrator.\n\nYou will be notified once verified by GEOG Supreme Authority.\n\nCard Ref: ' + cardRef);
+}
+</script>
+</body>
+</html>

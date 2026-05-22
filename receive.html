@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receive Funds - Bank of God</title>
+    <style>
+        body{background:#0d1421;color:#fff;font-family:Arial;margin:0;padding:15px;}
+       .container{max-width:400px;margin:0 auto;}
+       .logo-img{width:100px;margin:10px auto 15px;display:block;}
+       .card{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:15px;}
+        h1{color:#d4af37;font-size:24px;margin-bottom:20px;text-align:center;}
+       .hpin-display{background:#0d1421;padding:15px;border-radius:4px;margin:15px 0;text-align:center;}
+       .hpin-code{color:#d4af37;font-size:18px;font-weight:bold;word-break:break-all;}
+        button{background:#d4af37;color:#0d1421;border:none;padding:14px;border-radius:4px;font-weight:bold;font-size:16px;cursor:pointer;width:100%;margin-top:15px;}
+       .back-btn{background:transparent;border:1px solid #d4af37;color:#d4af37;margin-top:10px;}
+       .tx-table{width:100%;font-size:12px;margin-top:15px;border-collapse:collapse;}
+       .tx-table th,.tx-table td{border-bottom:1px solid #2a3441;padding:8px;text-align:left;}
+       .tx-table th{color:#d4af37;}
+       .currency-tag{color:#d4af37;font-weight:bold;}
+       .hidden{display:none;}
+        /* RECEIVER SLIP */
+       .slip{background:#fff;color:#000;padding:20px;border-radius:4px;margin-top:20px;font-size:12px;}
+       .slip-header{text-align:center;border-bottom:2px solid #2a7a2a;padding-bottom:10px;margin-bottom:15px;}
+       .slip-logo{width:60px;margin:0 auto 5px;}
+       .slip h2{color:#0d1421;font-size:16px;margin:5px 0;}
+       .slip-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted #ccc;}
+       .slip-footer{text-align:center;margin-top:15px;font-size:10px;color:#555;}
+       .seal{text-align:center;margin:10px 0;font-weight:bold;color:#2a7a2a;}
+       .credit-badge{background:#2a7a2a;color:#fff;padding:2px 8px;border-radius:3px;font-size:10px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="bog-logo.png" class="logo-img" alt="Bank of God">
+
+        <!-- RECEIVE MAIN -->
+        <div class="card" id="receiveMain">
+            <h1>Receive Global Dollars</h1>
+
+            <p style="color:#888;font-size:14px;text-align:center;">Share your H-PIN to receive funds</p>
+
+            <div class="hpin-display">
+                <div style="font-size:12px;color:#888;">YOUR H-PIN / ACCOUNT ID</div>
+                <div class="hpin-code" id="userHpin">Loading...</div>
+            </div>
+
+            <button onclick="copyHpin()">Copy H-PIN</button>
+
+            <h3 style="margin-top:25px;color:#d4af37;font-size:16px;">Incoming Transactions</h3>
+            <table class="tx-table" id="incomingTable">
+                <tr><th>Date</th><th>From</th><th>Amount</th><th>Slip</th></tr>
+                <tr><td colspan="4" style="text-align:center;color:#888;">No incoming transfers yet</td></tr>
+            </table>
+
+            <button class="back-btn" onclick="location='dashboard.html'">Back to Dashboard</button>
+        </div>
+
+        <!-- RECEIVER SLIP VIEW -->
+        <div class="card hidden" id="slipView">
+            <div class="slip" id="slipContent"></div>
+            <button onclick="closeSlip()">Close Slip</button>
+        </div>
+    </div>
+
+<script>
+// GLOBAL CURRENCY SYSTEM
+if(!localStorage.getItem('bog_user')) {
+    alert('Session expired. Please login.');
+    location.href = 'index.html';
+}
+
+let userCurrency = localStorage.getItem('bog_currency') || 'GD';
+let rates = {
+    GD: 1,
+    GBP: parseFloat(localStorage.getItem('rate_GBP')) || 3434.34,
+    USD: parseFloat(localStorage.getItem('rate_USD')) || 4356.78,
+    EUR: parseFloat(localStorage.getItem('rate_EUR')) || 4023.12,
+    NGN: parseFloat(localStorage.getItem('rate_NGN')) || 6500000
+};
+
+let userHPIN = localStorage.getItem('bog_hpin');
+document.getElementById('userHpin').textContent = userHPIN || 'Not registered';
+
+// Load incoming transactions from global log
+function loadIncoming() {
+    let log = JSON.parse(localStorage.getItem('bog_activity') || '[]');
+    let incoming = log.filter(tx =>
+        (tx.status.includes('Sent to ' + userHPIN) ||
+         tx.status.includes('credited to ' + userHPIN) ||
+         tx.hpin === userHPIN && tx.type === 'Deposit')
+    );
+
+    let html = '<tr><th>Date</th><th>From</th><th>Amount</th><th>Slip</th></tr>';
+
+    if(incoming.length === 0) {
+        html += '<tr><td colspan="4" style="text-align:center;color:#888;">No incoming transfers yet</td></tr>';
+    } else {
+        incoming.forEach((tx, i) => {
+            let gdAmount = parseFloat(tx.amount.replace('GD ', '').split(' / ')[0]);
+            let displayAmount = gdAmount * rates[userCurrency];
+            let from = tx.type === 'Deposit'? 'Zenith Bank' : 'Bank of God User';
+
+            html += `<tr>
+                <td>${tx.time.split(',')[0]}</td>
+                <td>${from}</td>
+                <td><span class="currency-tag">${userCurrency} ${displayAmount.toFixed(2)}</span></td>
+                <td><button style="padding:4px 8px;font-size:11px;width:auto;" onclick="viewSlip(${i})">View</button></td>
+            </tr>`;
+        });
+    }
+    document.getElementById('incomingTable').innerHTML = html;
+    window.incomingTx = incoming; // Store for slip view
+}
+
+function copyHpin() {
+    navigator.clipboard.writeText(userHPIN);
+    alert('H-PIN copied, Sir!\n\nShare this to receive Global Dollars.');
+}
+
+function viewSlip(index) {
+    const tx = window.incomingTx[index];
+    let gdAmount = parseFloat(tx.amount.replace('GD ', '').split(' / ')[0]);
+    let displayAmount = gdAmount * rates[userCurrency];
+    let from = tx.type === 'Deposit'? 'Zenith Bank - Aquatech Fabrication Ltd' : 'Bank of God Transfer';
+    let txID = 'BOG-RX-' + Date.now();
+
+    const slipHTML = `
+        <div class="slip-header">
+            <img src="bog-logo.png" class="slip-logo" alt="BOG">
+            <h2>THE BANK OF GOD</h2>
+            <p style="font-size:10px;margin:0;">WORLDWIDE CENTRAL FED</p>
+            <p style="font-size:11px;font-weight:bold;margin:5px 0;">FUNDS CREDIT RECEIPT</p>
+            <span class="credit-badge">INCOMING TRANSFER</span>
+        </div>
+
+        <div class="slip-row"><span>Receipt ID:</span><strong>${txID}</strong></div>
+        <div class="slip-row"><span>Date/Time:</span><strong>${tx.time}</strong></div>
+        <div class="slip-row"><span>Receiver H-PIN:</span><strong>${userHPIN}</strong></div>
+        <div class="slip-row"><span>From:</span><strong>${from}</strong></div>
+        <div class="slip-row"><span>Amount Credited:</span><strong style="color:#0d1421;font-size:14px;">${userCurrency} ${displayAmount.toFixed(2)}</strong></div>
+        <div class="slip-row"><span>GD Equivalent:</span><strong>GD ${gdAmount.toFixed(2)}</strong></div>
+        <div class="slip-row"><span>Status:</span><strong style="color:green;">CREDITED</strong></div>
+
+        <div class="seal">*** VERIFIED BY BANK OF GOD ***</div>
+
+        <div class="slip-footer">
+            Protected by 256-bit AES Encryption<br>
+            Powered by Aquatech Fabrication Ltd (RC-1618910)<br>
+            For disputes: bankofgodglobaldollar@gmail.com
+        </div>
+    `;
+
+    document.getElementById('slipContent').innerHTML = slipHTML;
+    document.getElementById('receiveMain').classList.add('hidden');
+    document.getElementById('slipView').classList.remove('hidden');
+}
+
+function closeSlip() {
+    document.getElementById('slipView').classList.add('hidden');
+    document.getElementById('receiveMain').classList.remove('hidden');
+}
+
+loadIncoming();
+</script>
+</body>
+</html>

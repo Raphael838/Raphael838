@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bank of God</title>
+    <style>
+        @font-face { font-family: 'GD'; src: url('gd-symbol.svg#GD') format('svg'); }
+        body{background:#0d1421;color:#fff;font-family:Arial;margin:0;padding:15px;}
+       .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+       .bog-logo-img{width:40px;height:40px;cursor:pointer;object-fit:contain;}
+       .flag{width:24px;height:18px;border-radius:2px;}
+       .balance-card{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:20px;}
+       .balance-label{color:#888;font-size:14px;}
+       .balance-amount{font-size:32px;color:#d4af37;margin:5px 0;}
+       .gd{font-family:'GD',sans-serif;font-size:28px;}
+       .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+        button{background:#d4af37;color:#0d1421;border:none;padding:15px;border-radius:4px;font-weight:bold;font-size:14px;cursor:pointer;}
+        button:hover{opacity:0.9;}
+       .btn-secondary{background:#1a2332;color:#d4af37;border:1px solid #d4af37;}
+       .rate-box{background:#0d1421;padding:10px;border-radius:4px;margin-top:10px;font-size:12px;color:#888;}
+       .currency-switch{width:auto;padding:8px 12px;font-size:12px;background:transparent;border:1px solid #d4af37;color:#d4af37;}
+       .admin-badge{color:#c62828;font-size:11px;font-weight:bold;margin-top:5px;}
+       .user-info{color:#888;font-size:11px;margin-top:8px;}
+       .admin-nav{background:#2a0000;border:1px solid #c62828;padding:12px;border-radius:6px;margin-bottom:15px;text-align:center;}
+       .admin-nav a{color:#c62828;text-decoration:none;font-size:13px;font-weight:bold;}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="currency-switch" onclick="changeCurrency()">Change App Currency</button>
+        <img src="bog-logo.png" class="bog-logo-img" alt="Bank of God" onclick="location='dashboard.html'">
+        <img id="flag" class="flag" src="">
+    </div>
+
+    <!-- ADMIN NAV - Only shows for FED access -->
+    <div id="adminNav" class="admin-nav" style="display:none;">
+        <a href="admin.html">← RETURN TO FED CONTROL PANEL</a>
+    </div>
+
+    <div class="balance-card">
+        <div class="balance-label">My Balance</div>
+        <div class="balance-amount"><span class="gd">D</span> <span id="balance">0.00</span></div>
+        <div class="user-info" id="userInfo">H-PIN: Loading...</div>
+        <div class="admin-badge" id="adminBadge" style="display:none;">SUPREME AUTHORITY - WORLDWIDE CENTRAL FED</div>
+        <div class="rate-box" id="rateDisplay">1 GD = 3,434.34 GBP | 1 GD = 4,356.78 USD</div>
+    </div>
+
+    <div class="btn-grid">
+        <button onclick="location='send.html'">Send Funds</button>
+        <button onclick="location='receive.html'">Receive Funds</button>
+        <button onclick="location='deposit.html'">Deposit</button>
+        <button onclick="location='request.html'">Funds Request</button>
+    </div>
+
+    <div class="btn-grid">
+        <button onclick="location='hpin-card.html'" class="btn-secondary">H-PIN ID Card</button>
+        <button onclick="changeStatus()" class="btn-secondary">Change Status</button>
+    </div>
+
+<script>
+// UNIVERSAL BOG AUTH CHECK - SUPREME AUTHORITY ENABLED
+const userHPIN = localStorage.getItem('bog_hpin');
+const isAdmin = userHPIN === 'GEOG-ADMIN-OKI';
+
+if(!userHPIN) {
+    alert('Session expired, Sir. Please login.');
+    location.href = 'index.html';
+}
+
+// Load user profile
+const userProfile = JSON.parse(localStorage.getItem('bog_profile_' + userHPIN) || '{}');
+const userEmail = localStorage.getItem('bog_user');
+
+// Auto-detect country flag
+fetch('https://ipapi.co/json/').then(r=>r.json()).then(d=>{
+    document.getElementById('flag').src=`https://flagcdn.com/24x18/${d.country_code.toLowerCase()}.png`;
+}).catch(e=>{console.log('Flag load failed');});
+
+// Load balance in chosen currency
+let userCurrency = localStorage.getItem('bog_currency') || 'GD';
+let gdBalance = parseFloat(localStorage.getItem('bal_' + userHPIN) || '0');
+
+// Base rates - admin sets these in admin.html
+let rates = {
+    GD: 1,
+    GBP: 3434.34,
+    USD: 4356.78,
+    EUR: 4023.12,
+    NGN: 6500000
+};
+
+function displayBalance(){
+    let converted = gdBalance * rates[userCurrency];
+    document.getElementById('balance').textContent = converted.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    if(userCurrency!== 'GD') {
+        document.querySelector('.gd').textContent = userCurrency;
+    } else {
+        document.querySelector('.gd').textContent = 'D';
+    }
+
+    // Display user info
+    document.getElementById('userInfo').textContent = `H-PIN: ${userHPIN} | ${userProfile.fullName || 'User'}`;
+
+    // Show admin badge if admin
+    if(isAdmin) {
+        document.getElementById('adminBadge').style.display = 'block';
+        document.getElementById('adminNav').style.display = 'block';
+        document.querySelector('.balance-card').style.borderColor = '#c62828';
+    }
+}
+
+function changeCurrency(){
+    let newCur = prompt('Enter currency code:\nGD, USD, GBP, EUR, NGN\n\nCurrent: ' + userCurrency);
+    if(newCur && rates[newCur]) {
+        localStorage.setItem('bog_currency', newCur);
+        userCurrency = newCur;
+        displayBalance();
+    }
+}
+
+function changeStatus(){
+    if(isAdmin) {
+        alert('Supreme Authority Status, Sir.\n\nYou have unrestricted FED access.\nNo status change required.');
+    } else {
+        alert('Status Update:\n\n1. Register as General User first\n2. Admin generates H-PIN code for Military/Govt/Agent\n3. Enter code in Profile\n4. Admin approves\n\nContact: bankofgodglobaldollar@gmail.com');
+    }
+}
+
+window.onload = function() {
+    displayBalance();
+};
+</script>
+</body>
+</html>

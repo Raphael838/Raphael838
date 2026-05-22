@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Rates - Bank of God</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#0d1421;color:#fff;font-family:Arial;padding:15px;}
+    .container{max-width:500px;margin:0 auto;}
+    .page-header{text-align:center;margin-bottom:25px;border-bottom:2px solid #d4af37;padding-bottom:15px;}
+    .page-title{color:#d4af37;font-size:24px;font-weight:bold;}
+    .page-subtitle{color:#888;font-size:12px;margin-top:5px;}
+    .live-indicator{display:inline-block;width:8px;height:8px;background:#4caf50;border-radius:50%;margin-right:6px;animation:pulse 2s infinite;}
+      @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+     /* RATE CARDS */
+    .rates-grid{display:grid;gap:15px;margin-bottom:20px;}
+    .rate-card{background:linear-gradient(135deg, #1a2332 0%, #0d1421 100%);padding:20px;border-radius:8px;border:2px solid #2a3441;position:relative;overflow:hidden;}
+    .rate-card.active{border-color:#d4af37;box-shadow:0 4px 20px rgba(212,175,55,0.2);}
+    .rate-card::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%);}
+    .rate-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;position:relative;z-index:1;}
+    .currency-info{display:flex;align-items:center;gap:10px;}
+    .currency-flag{width:32px;height:32px;border-radius:50%;background:#d4af37;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .currency-name{font-size:14px;color:#888;}
+    .currency-code{font-size:20px;color:#d4af37;font-weight:bold;}
+    .rate-value{font-size:28px;color:#fff;font-weight:bold;font-family:'Courier New';}
+    .rate-change{font-size:11px;margin-top:5px;}
+    .rate-up{color:#4caf50;}
+    .rate-down{color:#f44336;}
+    .rate-label{font-size:10px;color:#888;margin-top:8px;}
+
+     /* CONVERTER */
+    .converter{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:20px;}
+    .converter h3{color:#d4af37;font-size:16px;margin-bottom:15px;}
+    .convert-row{display:flex;gap:10px;margin-bottom:12px;align-items:center;}
+    .convert-input{flex:1;}
+    .convert-input label{font-size:11px;color:#888;display:block;margin-bottom:5px;}
+    .convert-input input, .convert-input select{width:100%;padding:12px;background:#0d1421;border:1px solid #2a3441;border-radius:4px;color:#fff;font-size:16px;}
+    .swap-btn{width:40px;height:40px;background:#d4af37;color:#0d1421;border:none;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;margin-top:20px;}
+    .convert-result{background:#0d1421;padding:15px;border-radius:4px;text-align:center;margin-top:15px;border:1px dashed #d4af37;}
+    .result-amount{font-size:32px;color:#d4af37;font-weight:bold;font-family:'Courier New';}
+    .result-label{font-size:11px;color:#888;margin-top:5px;}
+
+     /* ADMIN CONTROLS */
+    .admin-panel{background:#1a2332;padding:20px;border-radius:8px;border:2px solid #c62828;margin-bottom:20px;display:none;}
+    .admin-panel h3{color:#c62828;font-size:16px;margin-bottom:15px;}
+    .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .admin-field{margin-bottom:10px;}
+    .admin-field label{font-size:11px;color:#888;display:block;margin-bottom:5px;}
+    .admin-field input{width:100%;padding:10px;background:#0d1421;border:1px solid #2a3441;border-radius:4px;color:#fff;font-size:14px;}
+    .btn-update{background:#c62828;color:#fff;border:none;padding:12px;border-radius:4px;font-weight:bold;cursor:pointer;width:100%;margin-top:10px;}
+
+     /* FOOTER */
+    .footer-info{background:#1a2332;padding:15px;border-radius:8px;font-size:11px;color:#888;line-height:1.6;text-align:center;}
+    .footer-info strong{color:#d4af37;}
+
+    button.back-btn{background:transparent;border:1px solid #d4af37;color:#d4af37;padding:12px;border-radius:4px;width:100%;font-weight:bold;cursor:pointer;margin-top:15px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">EXCHANGE RATES</div>
+            <div class="page-subtitle">
+                <span class="live-indicator"></span>LIVE BANK OF GOD RATES • UPDATED BY CENTRAL FED
+            </div>
+        </div>
+
+        <!-- LIVE RATES -->
+        <div class="rates-grid" id="ratesGrid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- CONVERTER -->
+        <div class="converter">
+            <h3>Currency Converter</h3>
+            <div class="convert-row">
+                <div class="convert-input">
+                    <label>FROM</label>
+                    <select id="fromCurrency" onchange="convert()">
+                        <option value="GD">GD - Global Dollar</option>
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="GBP">GBP - British Pound</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="NGN">NGN - Nigerian Naira</option>
+                    </select>
+                </div>
+                <div class="convert-input">
+                    <label>AMOUNT</label>
+                    <input type="number" id="fromAmount" value="1" oninput="convert()" step="0.01">
+                </div>
+            </div>
+
+            <div style="text-align:center;">
+                <button class="swap-btn" onclick="swapCurrencies()">⇅</button>
+            </div>
+
+            <div class="convert-row">
+                <div class="convert-input">
+                    <label>TO</label>
+                    <select id="toCurrency" onchange="convert()">
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="GD">GD - Global Dollar</option>
+                        <option value="GBP">GBP - British Pound</option>
+                        <option value="EUR">EUR - Euro</option>
+                        <option value="NGN">NGN - Nigerian Naira</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="convert-result">
+                <div class="result-amount" id="convertResult">0.00</div>
+                <div class="result-label" id="convertLabel">1 GD = 4,356.78 USD</div>
+            </div>
+        </div>
+
+        <!-- ADMIN PANEL - Only visible to admin -->
+        <div class="admin-panel" id="adminPanel">
+            <h3>⚠️ CENTRAL FED RATE CONTROL</h3>
+            <div class="admin-grid">
+                <div class="admin-field">
+                    <label>GBP Rate (1 GD = ? GBP)</label>
+                    <input type="number" id="adminGBP" step="0.01">
+                </div>
+                <div class="admin-field">
+                    <label>USD Rate (1 GD = ? USD)</label>
+                    <input type="number" id="adminUSD" step="0.01">
+                </div>
+                <div class="admin-field">
+                    <label>EUR Rate (1 GD = ? EUR)</label>
+                    <input type="number" id="adminEUR" step="0.01">
+                </div>
+                <div class="admin-field">
+                    <label>NGN Rate (1 GD = ? NGN)</label>
+                    <input type="number" id="adminNGN" step="1">
+                </div>
+            <button class="btn-update" onclick="updateRates()">Update Global Rates</button>
+        </div>
+
+        <!-- INFO -->
+        <div class="footer-info">
+            <strong>RATES SET BY:</strong> Oki Raphael Efe - Worldwide Central FED<br>
+            All transactions use these official Bank of God rates. Rates update in real-time across all user accounts.<br>
+            <strong>1 GD = Strongest Currency on Earth</strong>
+        </div>
+
+        <button class="back-btn" onclick="location='dashboard.html'">Back to Dashboard</button>
+    </div>
+
+<script>
+// AUTH CHECK
+if(!localStorage.getItem('bog_user')) {
+    alert('Session expired. Please login.');
+    location.href = 'index.html';
+}
+
+let userHPIN = localStorage.getItem('bog_hpin');
+let isAdmin = userHPIN === 'GEOG-ADMIN-OKI';
+
+// EXCHANGE RATES - Stored globally
+let rates = {
+    GD: 1,
+    GBP: parseFloat(localStorage.getItem('rate_GBP')) || 3434.34,
+    USD: parseFloat(localStorage.getItem('rate_USD')) || 4356.78,
+    EUR: parseFloat(localStorage.getItem('rate_EUR')) || 4023.12,
+    NGN: parseFloat(localStorage.getItem('rate_NGN')) || 6500000
+};
+
+let flags = {
+    GD: '🌍',
+    USD: '🇺🇸',
+    GBP: '🇬🇧',
+    EUR: '🇪🇺',
+    NGN: '🇳🇬'
+};
+
+let names = {
+    GD: 'Global Dollar',
+    USD: 'US Dollar',
+    GBP: 'British Pound',
+    EUR: 'Euro',
+    NGN: 'Nigerian Naira'
+};
+
+// SHOW ADMIN PANEL IF ADMIN
+if(isAdmin) {
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('adminGBP').value = rates.GBP;
+    document.getElementById('adminUSD').value = rates.USD;
+    document.getElementById('adminEUR').value = rates.EUR;
+    document.getElementById('adminNGN').value = rates.NGN;
+}
+
+// RENDER RATE CARDS
+function renderRates() {
+    let html = '';
+    Object.keys(rates).forEach(curr => {
+        if(curr === 'GD') return;
+        let isActive = curr === 'USD';
+        html += `
+            <div class="rate-card ${isActive?'active':''}">
+                <div class="rate-header">
+                    <div class="currency-info">
+                        <div class="currency-flag">${flags[curr]}</div>
+                        <div>
+                            <div class="currency-code">${curr}</div>
+                            <div class="currency-name">${names[curr]}</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="rate-value">${rates[curr].toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                        <div class="rate-change rate-up">▲ LIVE</div>
+                    </div>
+                <div class="rate-label">1 GD = ${rates[curr].toLocaleString()} ${curr}</div>
+            </div>
+        `;
+    });
+    document.getElementById('ratesGrid').innerHTML = html;
+}
+
+// CONVERTER
+function convert() {
+    let from = document.getElementById('fromCurrency').value;
+    let to = document.getElementById('toCurrency').value;
+    let amount = parseFloat(document.getElementById('fromAmount').value) || 0;
+
+    // Convert to GD first, then to target
+    let gdAmount = amount / rates[from];
+    let result = gdAmount * rates[to];
+
+    document.getElementById('convertResult').textContent = result.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('convertLabel').textContent = `${amount} ${from} = ${result.toFixed(2)} ${to}`;
+}
+
+function swapCurrencies() {
+    let from = document.getElementById('fromCurrency').value;
+    let to = document.getElementById('toCurrency').value;
+    document.getElementById('fromCurrency').value = to;
+    document.getElementById('toCurrency').value = from;
+    convert();
+}
+
+// ADMIN UPDATE RATES
+function updateRates() {
+    if(!isAdmin) return alert('Access Denied, Sir');
+
+    rates.GBP = parseFloat(document.getElementById('adminGBP').value) || rates.GBP;
+    rates.USD = parseFloat(document.getElementById('adminUSD').value) || rates.USD;
+    rates.EUR = parseFloat(document.getElementById('adminEUR').value) || rates.EUR;
+    rates.NGN = parseFloat(document.getElementById('adminNGN').value) || rates.NGN;
+
+    localStorage.setItem('rate_GBP', rates.GBP);
+    localStorage.setItem('rate_USD', rates.USD);
+    localStorage.setItem('rate_EUR', rates.EUR);
+    localStorage.setItem('rate_NGN', rates.NGN);
+
+    renderRates();
+    convert();
+    alert('Global Exchange Rates Updated, Sir!\n\nAll user accounts will now use these rates for Send, Receive, and Request.');
+}
+
+// INIT
+renderRates();
+convert();
+</script>
+</body>
+</html>

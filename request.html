@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Funds - Bank of God</title>
+    <style>
+        body{background:#0d1421;color:#fff;font-family:Arial;margin:0;padding:15px;}
+      .container{max-width:400px;margin:0 auto;}
+      .logo-img{width:100px;margin:10px auto 15px;display:block;}
+      .card{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:15px;}
+        h1{color:#d4af37;font-size:24px;margin-bottom:20px;text-align:center;}
+        label{font-size:12px;color:#888;display:block;margin-top:10px;}
+        input,select,textarea{width:100%;padding:12px;margin:8px 0;background:#0d1421;border:1px solid #2a3441;border-radius:4px;color:#fff;font-size:16px;box-sizing:border-box;}
+        textarea{resize:vertical;min-height:80px;}
+        button{background:#d4af37;color:#0d1421;border:none;padding:14px;border-radius:4px;font-weight:bold;font-size:16px;cursor:pointer;width:100%;margin-top:15px;}
+      .back-btn{background:transparent;border:1px solid #d4af37;color:#d4af37;margin-top:10px;}
+      .fed-btn{background:#c62828;color:#fff;}
+      .currency-tag{color:#d4af37;font-weight:bold;}
+      .req-table{width:100%;font-size:12px;margin-top:15px;border-collapse:collapse;}
+      .req-table th,.req-table td{border-bottom:1px solid #2a3441;padding:8px;text-align:left;}
+      .req-table th{color:#d4af37;}
+      .status-pending{color:#ff9800;}
+      .status-approved{color:#4caf50;}
+      .status-denied{color:#f44336;}
+      .hidden{display:none;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="bog-logo.png" class="logo-img" alt="Bank of God">
+
+        <div class="card" id="requestForm">
+            <h1>Request Funds</h1>
+
+            <label>REQUEST TYPE</label>
+            <select id="requestType" onchange="toggleRecipient()">
+                <option value="user">Request from H-PIN User</option>
+                <option value="fed">Request from Worldwide Central FED</option>
+            </select>
+
+            <div id="recipientField">
+                <label>RECIPIENT H-PIN TO REQUEST FROM</label>
+                <input type="text" id="requestTo" placeholder="GEOG-1234567890">
+            </div>
+
+            <label>AMOUNT (<span id="currencyLabel">GD</span>)</label>
+            <input type="number" id="amount" placeholder="0.00" step="0.01">
+            <div style="font-size:11px;color:#888;margin-top:-5px;margin-bottom:10px;">
+                Equivalent: GD <span id="gdEquivalent">0.00</span>
+            </div>
+
+            <label>REASON FOR REQUEST</label>
+            <textarea id="reason" placeholder="Business capital, medical emergency, etc."></textarea>
+
+            <button onclick="submitRequest()" id="submitBtn">Send Request</button>
+            <button class="back-btn" onclick="location='dashboard.html'">Back to Dashboard</button>
+        </div>
+
+        <!-- MY REQUESTS LOG -->
+        <div class="card">
+            <h3 style="color:#d4af37;font-size:16px;">My Fund Requests</h3>
+            <table class="req-table" id="requestTable">
+                <tr><th>Date</th><th>To</th><th>Amount</th><th>Status</th></tr>
+                <tr><td colspan="4" style="text-align:center;color:#888;">No requests yet</td></tr>
+            </table>
+        </div>
+    </div>
+
+<script>
+// GLOBAL CURRENCY SYSTEM
+if(!localStorage.getItem('bog_user')) {
+    alert('Session expired. Please login.');
+    location.href = 'index.html';
+}
+
+let userCurrency = localStorage.getItem('bog_currency') || 'GD';
+let rates = {
+    GD: 1,
+    GBP: parseFloat(localStorage.getItem('rate_GBP')) || 3434.34,
+    USD: parseFloat(localStorage.getItem('rate_USD')) || 4356.78,
+    EUR: parseFloat(localStorage.getItem('rate_EUR')) || 4023.12,
+    NGN: parseFloat(localStorage.getItem('rate_NGN')) || 6500000
+};
+
+let userHPIN = localStorage.getItem('bog_hpin');
+document.getElementById('currencyLabel').textContent = userCurrency;
+
+function toggleRecipient() {
+    const type = document.getElementById('requestType').value;
+    const recipientDiv = document.getElementById('recipientField');
+    const btn = document.getElementById('submitBtn');
+
+    if(type === 'fed') {
+        recipientDiv.classList.add('hidden');
+        btn.textContent = 'Submit to Central FED';
+        btn.classList.add('fed-btn');
+    } else {
+        recipientDiv.classList.remove('hidden');
+        btn.textContent = 'Send Request';
+        btn.classList.remove('fed-btn');
+    }
+}
+
+// Show GD equivalent as user types
+document.getElementById('amount').addEventListener('input', function() {
+    let inputAmount = parseFloat(this.value) || 0;
+    let gdAmount = inputAmount / rates[userCurrency];
+    document.getElementById('gdEquivalent').textContent = gdAmount.toFixed(2);
+});
+
+function submitRequest() {
+    const type = document.getElementById('requestType').value;
+    const requestTo = type === 'fed'? 'BANK OF GOD FED' : document.getElementById('requestTo').value.trim();
+    const inputAmount = parseFloat(document.getElementById('amount').value);
+    const reason = document.getElementById('reason').value.trim();
+
+    if(type === 'user' &&!requestTo) { alert('Enter H-PIN to request from, Sir'); return; }
+    if(!inputAmount || inputAmount <= 0) { alert('Enter valid amount, Sir'); return; }
+    if(!reason) { alert('Enter reason for request, Sir'); return; }
+
+    let gdAmount = inputAmount / rates[userCurrency];
+    const reqID = 'BOG-RQ-' + Date.now();
+    const timestamp = new Date().toLocaleString();
+
+    // Save request to activity log for admin to see
+    let log = JSON.parse(localStorage.getItem('bog_activity') || '[]');
+    log.unshift({
+        time: timestamp,
+        hpin: userHPIN,
+        type: 'Request',
+        amount: `GD ${gdAmount.toFixed(2)} / ${userCurrency} ${inputAmount.toFixed(2)}`,
+        status: `Pending - To: ${requestTo} | Reason: ${reason}`,
+        reqID: reqID
+    });
+    localStorage.setItem('bog_activity', JSON.stringify(log));
+
+    // Save to user's personal request log
+    let myRequests = JSON.parse(localStorage.getItem('bog_requests_' + userHPIN) || '[]');
+    myRequests.unshift({
+        reqID: reqID,
+        time: timestamp,
+        to: requestTo,
+        amount: gdAmount,
+        displayAmount: inputAmount,
+        currency: userCurrency,
+        reason: reason,
+        status: 'Pending'
+    });
+    localStorage.setItem('bog_requests_' + userHPIN, JSON.stringify(myRequests));
+
+    alert(`Request submitted, Sir.\n\nRequest ID: ${reqID}\nTo: ${requestTo}\nAmount: ${userCurrency} ${inputAmount.toFixed(2)}\n\nAwaiting approval.`);
+
+    // Reset form
+    document.getElementById('amount').value = '';
+    document.getElementById('reason').value = '';
+    document.getElementById('gdEquivalent').textContent = '0.00';
+    if(type === 'user') document.getElementById('requestTo').value = '';
+
+    loadRequests();
+}
+
+function loadRequests() {
+    let myRequests = JSON.parse(localStorage.getItem('bog_requests_' + userHPIN) || '[]');
+    let html = '<tr><th>Date</th><th>To</th><th>Amount</th><th>Status</th></tr>';
+
+    if(myRequests.length === 0) {
+        html += '<tr><td colspan="4" style="text-align:center;color:#888;">No requests yet</td></tr>';
+    } else {
+        myRequests.slice(0,10).forEach(req => {
+            let statusClass = req.status === 'Pending'? 'status-pending' : req.status === 'Approved'? 'status-approved' : 'status-denied';
+            html += `<tr>
+                <td>${req.time.split(',')[0]}</td>
+                <td>${req.to === 'BANK OF GOD FED'? 'FED' : req.to}</td>
+                <td><span class="currency-tag">${req.currency} ${req.displayAmount.toFixed(2)}</span></td>
+                <td class="${statusClass}">${req.status}</td>
+            </tr>`;
+        });
+    }
+    document.getElementById('requestTable').innerHTML = html;
+}
+
+// Initialize
+loadRequests();
+</script>
+</body>
+</html>

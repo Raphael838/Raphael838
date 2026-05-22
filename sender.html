@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Funds - Bank of God</title>
+    <style>
+        body{background:#0d1421;color:#fff;font-family:Arial;margin:0;padding:15px;}
+       .container{max-width:400px;margin:0 auto;}
+       .logo-img{width:100px;margin:10px auto 15px;display:block;}
+       .card{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:15px;}
+        h1{color:#d4af37;font-size:24px;margin-bottom:20px;text-align:center;}
+        label{font-size:12px;color:#888;display:block;margin-top:10px;}
+        input,select{width:100%;padding:12px;margin:8px 0;background:#0d1421;border:1px solid #2a3441;border-radius:4px;color:#fff;font-size:16px;box-sizing:border-box;}
+        button{background:#d4af37;color:#0d1421;border:none;padding:14px;border-radius:4px;font-weight:bold;font-size:16px;cursor:pointer;width:100%;margin-top:15px;}
+       .back-btn{background:transparent;border:1px solid #d4af37;color:#d4af37;margin-top:10px;}
+       .balance-info{background:#0d1421;padding:12px;border-radius:4px;margin-bottom:15px;font-size:14px;}
+       .hidden{display:none;}
+       .slip{background:#fff;color:#000;padding:20px;border-radius:4px;margin-top:20px;font-size:12px;}
+       .slip-header{text-align:center;border-bottom:2px solid #d4af37;padding-bottom:10px;margin-bottom:15px;}
+       .slip-logo{width:60px;margin:0 auto 5px;}
+       .slip h2{color:#0d1421;font-size:16px;margin:5px 0;}
+       .slip-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted #ccc;}
+       .slip-footer{text-align:center;margin-top:15px;font-size:10px;color:#555;}
+       .seal{text-align:center;margin:10px 0;font-weight:bold;color:#d4af37;}
+       .institution-badge{background:#c62828;color:#fff;padding:2px 8px;border-radius:3px;font-size:10px;}
+       .currency-tag{color:#d4af37;font-weight:bold;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="bog-logo.png" class="logo-img" alt="Bank of God">
+
+        <!-- SEND FORM -->
+        <div class="card" id="sendForm">
+            <h1>Send Funds</h1>
+
+            <div class="balance-info">
+                Available Balance: <span class="currency-tag"><span id="currencySymbol">GD</span> <span id="bal">0.00</span></span>
+            </div>
+
+            <label>RECIPIENT H-PIN OR EMAIL</label>
+            <input type="text" id="recipient" placeholder="GEOG-1234567890 or user@email.com">
+
+            <label>AMOUNT (<span id="inputCurrency">GD</span>)</label>
+            <input type="number" id="amount" placeholder="0.00" step="0.01">
+            <div style="font-size:11px;color:#888;margin-top:-5px;margin-bottom:10px;">
+                Equivalent: GD <span id="gdEquivalent">0.00</span>
+            </div>
+
+            <label>TRANSFER TYPE</label>
+            <select id="transferType">
+                <option value="regular">Regular User Transfer</option>
+                <option value="institution">Banking Institution / Financial Agent</option>
+            </select>
+
+            <label>TRANSACTION NOTE (Optional)</label>
+            <input type="text" id="note" placeholder="Payment for services">
+
+            <button onclick="processSend()">Send Funds Now</button>
+            <button class="back-btn" onclick="location='dashboard.html'">Back to Dashboard</button>
+        </div>
+
+        <!-- TRANSACTION SLIP -->
+        <div class="card hidden" id="slipCard">
+            <div class="slip" id="slipContent"></div>
+            <button onclick="downloadSlip()">Download Slip</button>
+            <button class="back-btn" onclick="location='dashboard.html'">Done</button>
+        </div>
+    </div>
+
+<script>
+// GLOBAL CURRENCY SYSTEM - SIR
+if(!localStorage.getItem('bog_user')) {
+    alert('Session expired. Please login.');
+    location.href = 'index.html';
+}
+
+// 1. Load user currency preference. Default = GD
+let userCurrency = localStorage.getItem('bog_currency') || 'GD';
+
+// 2. Base rates - Admin sets these in admin.html. 1 GD = X units
+let rates = {
+    GD: 1,
+    GBP: parseFloat(localStorage.getItem('rate_GBP')) || 3434.34,
+    USD: parseFloat(localStorage.getItem('rate_USD')) || 4356.78,
+    EUR: parseFloat(localStorage.getItem('rate_EUR')) || 4023.12,
+    NGN: parseFloat(localStorage.getItem('rate_NGN')) || 6500000
+};
+
+// 3. Load GD balance - GD is the base unit in vault
+let userHPIN = localStorage.getItem('bog_hpin');
+let gdBalance = parseFloat(localStorage.getItem('bal_' + userHPIN) || '0');
+
+// 4. Display balance in user's chosen currency
+function displayBalance(){
+    let converted = gdBalance * rates[userCurrency];
+    document.getElementById('bal').textContent = converted.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('currencySymbol').textContent = userCurrency;
+    document.getElementById('inputCurrency').textContent = userCurrency;
+}
+
+// 5. Show GD equivalent as user types amount
+document.getElementById('amount').addEventListener('input', function() {
+    let inputAmount = parseFloat(this.value) || 0;
+    let gdAmount = inputAmount / rates[userCurrency];
+    document.getElementById('gdEquivalent').textContent = gdAmount.toFixed(2);
+});
+
+function processSend() {
+    const recipient = document.getElementById('recipient').value.trim();
+    const inputAmount = parseFloat(document.getElementById('amount').value);
+    const type = document.getElementById('transferType').value;
+    const note = document.getElementById('note').value.trim();
+
+    if(!recipient) { alert('Enter recipient H-PIN or email, Sir'); return; }
+    if(!inputAmount || inputAmount <= 0) { alert('Enter valid amount, Sir'); return; }
+
+    // Convert input amount to GD for vault deduction
+    let gdAmount = inputAmount / rates[userCurrency];
+
+    if(gdAmount > gdBalance) {
+        alert(`Insufficient balance, Sir. You have ${userCurrency} ${(gdBalance * rates[userCurrency]).toFixed(2)}`);
+        return;
+    }
+
+    // Deduct GD from sender vault
+    gdBalance -= gdAmount;
+    localStorage.setItem('bal_' + userHPIN, gdBalance.toString());
+
+    // Credit recipient in GD base
+    let recipientBal = parseFloat(localStorage.getItem('bal_' + recipient) || '0');
+    localStorage.setItem('bal_' + recipient, (recipientBal + gdAmount).toString());
+
+    const txID = 'BOG-TX-' + Date.now();
+    const timestamp = new Date().toLocaleString();
+
+    // Log activity in GD base + display currency
+    let log = JSON.parse(localStorage.getItem('bog_activity') || '[]');
+    log.unshift({
+        time: timestamp,
+        hpin: userHPIN,
+        type: 'Send',
+        amount: `GD ${gdAmount.toFixed(2)} / ${userCurrency} ${inputAmount.toFixed(2)}`,
+        status: 'Sent to ' + recipient
+    });
+    localStorage.setItem('bog_activity', JSON.stringify(log));
+
+    generateSlip(txID, timestamp, recipient, inputAmount, gdAmount, type, note);
+
+    document.getElementById('sendForm').classList.add('hidden');
+    document.getElementById('slipCard').classList.remove('hidden');
+}
+
+function generateSlip(txID, timestamp, recipient, displayAmount, gdAmount, type, note) {
+    let senderTypeLabel = '';
+    let slipHeader = '';
+
+    if(type === 'institution') {
+        senderTypeLabel = '<span class="institution-badge">BANKING INSTITUTION / FINANCIAL AGENT</span>';
+        slipHeader = 'OFFICIAL INTER-BANK TRANSFER SLIP';
+    } else {
+        senderTypeLabel = 'REGULAR USER TRANSFER';
+        slipHeader = 'TRANSACTION RECEIPT';
+    }
+
+    const slipHTML = `
+        <div class="slip-header">
+            <img src="bog-logo.png" class="slip-logo" alt="BOG">
+            <h2>THE BANK OF GOD</h2>
+            <p style="font-size:10px;margin:0;">WORLDWIDE CENTRAL FED</p>
+            <p style="font-size:11px;font-weight:bold;margin:5px 0;">${slipHeader}</p>
+            ${senderTypeLabel}
+        </div>
+
+        <div class="slip-row"><span>Transaction ID:</span><strong>${txID}</strong></div>
+        <div class="slip-row"><span>Date/Time:</span><strong>${timestamp}</strong></div>
+        <div class="slip-row"><span>Sender H-PIN:</span><strong>${userHPIN}</strong></div>
+        <div class="slip-row"><span>Recipient:</span><strong>${recipient}</strong></div>
+        <div class="slip-row"><span>Amount Sent:</span><strong style="color:#0d1421;font-size:14px;">${userCurrency} ${displayAmount.toFixed(2)}</strong></div>
+        <div class="slip-row"><span>GD Equivalent:</span><strong>GD ${gdAmount.toFixed(2)}</strong></div>
+        <div class="slip-row"><span>Transaction Fee:</span><strong>GD 0.00</strong></div>
+        <div class="slip-row"><span>Status:</span><strong style="color:green;">COMPLETED</strong></div>
+        ${note? `<div class="slip-row"><span>Note:</span><strong>${note}</strong></div>` : ''}
+
+        <div class="seal">*** VERIFIED BY BANK OF GOD ***</div>
+
+        <div class="slip-footer">
+            Protected by 256-bit AES Encryption<br>
+            Powered by Aquatech Fabrication Ltd (RC-1618910)<br>
+            For disputes: bankofgodglobaldollar@gmail.com
+        </div>
+    `;
+
+    document.getElementById('slipContent').innerHTML = slipHTML;
+}
+
+function downloadSlip() {
+    alert('Slip ready, Sir.\n\nScreenshot this page to save your transaction receipt.\nPDF export available in V2.');
+}
+
+// Initialize
+displayBalance();
+</script>
+</body>
+</html>

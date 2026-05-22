@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit - Bank of God</title>
+    <style>
+        body{background:#0d1421;color:#fff;font-family:Arial;margin:0;padding:15px;text-align:center;}
+        .container{max-width:400px;margin:0 auto;}
+        /* BOG LOGO ADDED */
+        .logo-img{width:120px;margin:10px auto 15px;display:block;}
+        .card{background:#1a2332;padding:20px;border-radius:8px;border:1px solid #2a3441;margin-bottom:15px;text-align:left;}
+        h1{color:#d4af37;font-size:24px;margin-bottom:10px;text-align:center;}
+        .bank-details{background:#0d1421;padding:15px;border-radius:4px;margin:15px 0;}
+        .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #2a3441;}
+        .copy-btn{background:#d4af37;color:#0d1421;border:none;padding:14px;border-radius:4px;font-weight:bold;width:100%;margin-top:15px;font-size:16px;}
+        .back-btn{background:transparent;border:1px solid #d4af37;color:#d4af37;padding:12px;border-radius:4px;width:100%;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- BOG LOGO -->
+        <img src="bog-logo.png" class="logo-img" alt="Bank of God">
+        
+        <div class="card">
+            <h1>Deposit to Bank of God</h1>
+            <p style="color:#888;font-size:14px;text-align:center;">Transfer to Aquatech Fabrication Ltd to credit your BOG account</p>
+            
+            <div class="bank-details">
+                <div class="detail-row">
+                    <span style="color:#888;">Bank Name:</span>
+                    <span><strong>Zenith Bank Plc</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span style="color:#888;">Account Name:</span>
+                    <span><strong>Aquatech Fabrication Ltd</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span style="color:#888;">Account Number:</span>
+                    <span style="color:#d4af37;font-size:18px;"><strong>1016781578</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span style="color:#888;">Your H-PIN:</span>
+                    <span id="hpin" style="color:#d4af37;"><strong>Loading...</strong></span>
+                </div>
+            </div>
+            
+            <p style="color:#c62828;font-size:12px;margin:15px 0;">
+                <strong>IMPORTANT:</strong> Use your H-PIN as payment reference. After transfer, your BOG account will be credited in GD automatically after Bank of God Admin verifies.
+            </p>
+            
+            <button class="copy-btn" onclick="copyDetails()">Copy Account Details</button>
+            <button class="back-btn" onclick="location='dashboard.html'" style="margin-top:10px;">Back to Dashboard</button>
+        </div>
+    </div>
+
+<script>
+document.getElementById('hpin').textContent = localStorage.getItem('bog_hpin') || 'Not registered';
+
+function copyDetails() {
+    const text = `Bank: Zenith Bank Plc\nAccount Name: Aquatech Fabrication Ltd\nAccount No: 1016781578\nReference: ${localStorage.getItem('bog_hpin')}`;
+    navigator.clipboard.writeText(text);
+    alert('Account details copied, Sir!\n\nTransfer from your bank app and use H-PIN as reference.');
+}
+
+// Check login
+if(!localStorage.getItem('bog_user')) {
+    alert('Session expired. Please login.');
+    location.href = 'index.html';
+}
+</script>
+</body>
+</html>
